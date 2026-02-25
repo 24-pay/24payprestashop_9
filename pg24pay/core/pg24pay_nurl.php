@@ -64,7 +64,7 @@ class Pg24payNurl {
     
     public function validateSign(){
         include_once 'pg24pay_sign.php';
-        $this->signGenerator = new Pg24paySign();
+        $this->signGenerator = new Pg24paySign($this->currency);
         $this->mid = $this->signGenerator->mid;
         $signCandidat = $this->signGenerator->getSign($this->plainText());
         if ($signCandidat==$this->sign)
