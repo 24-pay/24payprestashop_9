@@ -65,8 +65,8 @@ class Pg24payOrderFromOrder {
 
         $this->amount = number_format($objOrder->total_paid_real, 2, '.', '');
 
-        $this->rurl = $link->getModuleLink('pg24pay','rurl',[]);
-        $this->nurl = $link->getModuleLink('pg24pay','nurl',[]);
+        $this->rurl = str_replace('localhost', '127.0.0.1', $link->getModuleLink('pg24pay','rurl',[]));
+        $this->nurl = str_replace('localhost', '127.0.0.1', $link->getModuleLink('pg24pay','nurl',[]));
     }
 
     private function convertCountryCodeToIsoA3($isoa2code) {
