@@ -41,8 +41,22 @@ class Pg24payNurlModuleFrontController extends ModuleFrontController
         $nurl = new Pg24payNurl($params);
 
         if (!$nurl->validateSign()) {
-            echo "BAD NURL SIGN!";
+            http_response_code(400);
+            header('Content-Type: application/json');
+            echo json_encode(['error' => 'Invalid NURL signature']);
             return;
+        }
+
+        // Odoslať OK response brána a ukončiť komunikáciu s klientom
+        http_response_code(200);
+        echo "OK";
+
+        if (function_exists('fastcgi_finish_request')) {
+            fastcgi_finish_request(); // PHP-FPM
+        } else {
+            ignore_user_abort(true);
+            set_time_limit(0);
+            flush();
         }
 
         $cartId = $nurl->get24Id();
@@ -87,8 +101,7 @@ class Pg24payNurlModuleFrontController extends ModuleFrontController
         }
         else {
             Logger::addLog("pg24pay: Order already processed, cartId: ".$cartId.", orderId: ".$orderId.", status: ".$orderStatus, 1, null, "Order", $orderId);
-            header('HTTP/1.1 500 ORDER ALREADY CONFIRMED');
-            exit();
+            return;
         }
     }
 
@@ -98,10 +111,8 @@ class Pg24payNurlModuleFrontController extends ModuleFrontController
 
         if ($result == "OK") {
             $orderId = $this->confirmOrder($cartId, $result);
-            echo "Result: " . $result . "\n";
-            echo "ORDER ID: " . $orderId . "\n";
-            echo "24-pay ID: " . $cartId . "\n";
-            die("WHY?");
+            Logger::addLog("pg24pay: Payment confirmed, cartId: " . $cartId . ", orderId: " . $orderId, 1, null, "Cart", $cartId);
+            return;
         }
 
         if ($result == "PENDING") {
@@ -142,8 +153,10 @@ class Pg24payNurlModuleFrontController extends ModuleFrontController
 	private function confirmOrder($cartId, $result){
 
 		$cart = new Cart($cartId);
-		if ($cart->id_customer == 0 || $cart->id_address_delivery == 0 || $cart->id_address_invoice == 0 || !$this->module->active)
-			Tools::redirect('index.php?controller=order&step=1');
+		if ($cart->id_customer == 0 || $cart->id_address_delivery == 0 || $cart->id_address_invoice == 0 || !$this->module->active) {
+			Logger::addLog("pg24pay: Invalid cart data, cartId: " . $cartId, 1, null, "Cart", $cartId);
+			return null;
+		}
 
 		// Check that this payment option is still available in case the customer changed his address just before the end of the checkout process
 		$authorized = false;
@@ -155,8 +168,10 @@ class Pg24payNurlModuleFrontController extends ModuleFrontController
 			}
 
 		$customer = new Customer($cart->id_customer);
-		if (!Validate::isLoadedObject($customer))
-			Tools::redirect('index.php?controller=order&step=1');
+		if (!Validate::isLoadedObject($customer)) {
+			Logger::addLog("pg24pay: Invalid customer, cartId: " . $cartId, 1, null, "Cart", $cartId);
+			return null;
+		}
         $context = Context::getContext();
 
         $currency = new Currency($cart->id_currency);
