@@ -125,7 +125,7 @@ class Pg24payNurlModuleFrontController extends ModuleFrontController
                 Configuration::get('PAY24_OK'),
                 (int)$orderId
             );
-            $history->addWithemail(true);
+            $history->addWithEmail(true);
             return;
         }
 

@@ -43,7 +43,7 @@ class Pg24payOrdernurlModuleFrontController extends ModuleFrontController
                     $history = new OrderHistory();
                     $history->id_order = (int)$orderId;
                     $history->changeIdOrderState(Configuration::get('PAY24_OK'), (int)($orderId));
-                    $history->addWithemail(true);
+                    $history->addWithEmail(true);
                     
                 }
                 else if ($nurl->result=="PENDING"){
