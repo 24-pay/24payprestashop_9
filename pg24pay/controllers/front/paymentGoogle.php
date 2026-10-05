@@ -27,7 +27,7 @@ class Pg24payPaymentGoogleModuleFrontController extends ModuleFrontController
         if (isset($_GET['from_order'])){
 			
             $orderId = (int) Tools::getValue('from_order');
-            if (!Pg24payOrderFromOrder::isOrderOwnedBy($orderId, $this->context->customer)) {
+            if (!Pg24payOrderFromOrder::isOrderOwnedBy($orderId, $this->context->customer) || !Pg24payOrderFromOrder::isRepayable($orderId)) {
                 header('HTTP/1.1 403 Forbidden');
                 exit;
             }
@@ -35,6 +35,9 @@ class Pg24payPaymentGoogleModuleFrontController extends ModuleFrontController
         }
         else{
 			
+            if ($this->context->cart && Pg24payOrderFromOrder::cartHasForeignOrder($this->context->cart->id)) {
+                Tools::redirect('index.php?controller=history');
+            }
             $order = $this->paymentFromCart();
         }
         

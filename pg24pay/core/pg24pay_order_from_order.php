@@ -47,6 +47,30 @@ class Pg24payOrderFromOrder {
         return Validate::isLoadedObject($order) && (int) $order->id_customer === (int) $customer->id;
     }
 
+    public static function isRepayable($orderId)
+    {
+        $order = new Order((int) $orderId);
+        if (!Validate::isLoadedObject($order) || $order->module !== 'pg24pay') {
+            return false;
+        }
+
+        $state = (int) $order->current_state;
+
+        return $state === (int) Configuration::get('PAY24_FAIL');
+    }
+
+    public static function cartHasForeignOrder($cartId)
+    {
+        $orderId = (int) Order::getIdByCartId((int) $cartId);
+        if (!$orderId) {
+            return false;
+        }
+
+        $order = new Order($orderId);
+
+        return $order->module !== 'pg24pay';
+    }
+
     function __construct($orderId, $link){
 
         $objOrder = new Order((int) $orderId);

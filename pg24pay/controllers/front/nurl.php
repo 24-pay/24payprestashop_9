@@ -101,10 +101,48 @@ class Pg24payNurlModuleFrontController extends ModuleFrontController
         }
         else {
             Logger::addLog("pg24pay: Order already processed, cartId: ".$cartId.", orderId: ".$orderId.", status: ".$orderStatus, 1, null, "Order", $orderId);
+            if ($nurl->result == "OK") {
+                $this->recordUnattachedPayment($orderId, $orderObj, $cartId, $nurl);
+            }
             return;
         }
     }
 
+    private function recordUnattachedPayment($orderId, $orderObj, $cartId, $nurl)
+    {
+        $txnId = $nurl->getPspTxnId();
+
+        // Repeated notification for an order already paid through 24-pay
+        if ($orderObj->module === 'pg24pay' && $orderObj->hasBeenPaid()) {
+            return;
+        }
+
+        foreach ($orderObj->getOrderPaymentCollection() as $payment) {
+            if ($txnId !== '' && $payment->transaction_id === $txnId) {
+                return;
+            }
+        }
+
+        $currencyId = (int) Currency::getIdByIsoCode($nurl->getCurrency());
+        $currency = $currencyId ? new Currency($currencyId) : null;
+        $recorded = false;
+
+        try {
+            $recorded = $orderObj->addOrderPayment((float) $nurl->getAmount(), '24-pay', $txnId, $currency);
+        } catch (Exception $e) {
+            Logger::addLog("pg24pay: OrderPayment failed: " . $e->getMessage(), 3, null, "Order", $orderId);
+        }
+
+        $note = "24-pay: prijata platba (OK) " . $nurl->getAmount() . " " . $nurl->getCurrency() . ", transakcia " . $txnId .
+            ", kosik " . $cartId . ". Objednavka je vedena ako '" . $orderObj->payment . "' (modul " . $orderObj->module .
+            "), stav sa nezmenil. " . ($recorded ? "Platba bola zapisana k objednavke." : "Platbu sa nepodarilo zapisat k objednavke.") .
+            " Skontrolujte pripadnu duplicitnu platbu a vratte ju.";
+
+        Logger::addLog("pg24pay: " . $note, 3, null, "Order", $orderId);
+
+        $orderObj->note = trim((string) $orderObj->note . "\n" . $note);
+        $orderObj->update();
+    }
     private function handleNewOrder($cartId, $nurl)
     {
         $result = $nurl->result;

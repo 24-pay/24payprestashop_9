@@ -1,9 +1,10 @@
 # 24payprestashop_9
 24pay plugin for Prestashop ver 9.0.0
 
-Current version 1.1.2
+Current version 1.1.3
 
 Release history:
+- ver 1.1.3 = [05.10.2026]
 - ver 1.1.2 = [24.09.2026]
 - ver 1.1.1 = [23.06.2026]
 - ver 1.1.0 = [25.02.2026]

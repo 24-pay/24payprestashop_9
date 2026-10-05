@@ -84,4 +84,16 @@ class Pg24payNurl {
     public function getResult(){
         return $this->result;
     }
+
+    public function getPspTxnId(){
+        return (string) $this->pspTxnId;
+    }
+
+    public function getAmount(){
+        return (string) $this->amount;
+    }
+
+    public function getCurrency(){
+        return (string) $this->currency;
+    }
 }

@@ -13,6 +13,8 @@
  */
 
 
+include_once 'modules/pg24pay/core/pg24pay_order_from_order.php';
+
 class Pg24payRurlModuleFrontController extends ModuleFrontController
 {
     public function initContent()
@@ -29,7 +31,7 @@ class Pg24payRurlModuleFrontController extends ModuleFrontController
 
             if ($orderId) {
                 $order = new Order($orderId);
-                if (Validate::isLoadedObject($order) && (int) $order->id_customer === (int) $this->context->customer->id && $this->context->customer->id) {
+                if (Validate::isLoadedObject($order) && $order->module === 'pg24pay' && (int) $order->id_customer === (int) $this->context->customer->id && $this->context->customer->id) {
                     $orderRef = $order->reference;
                 } else {
                     $orderId = null;
@@ -42,6 +44,7 @@ class Pg24payRurlModuleFrontController extends ModuleFrontController
             'PAY24_REPAY' => Configuration::get('PAY24_REPAY'),
             'PAY24_ORDER' => $orderId,
             'PAY24_ORDER_REF' => $orderRef,
+            'PAY24_CAN_REPAY' => $orderId ? Pg24payOrderFromOrder::isRepayable($orderId) : false,
 
         ));
         

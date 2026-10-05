@@ -73,7 +73,7 @@
             <td>{l s='Unpaid' mod='pg24pay' d='Modules.Pg24pay.Rurl'}</td>
         </tr>
     </table>
-        {if $PAY24_ORDER neq null}
+        {if $PAY24_ORDER neq null && $PAY24_CAN_REPAY}
             <a class="btn btn-info btn-block" href="{$link->getModuleLink('pg24pay', 'payment', ['content_only'=>'1','from_order'=>$PAY24_ORDER], true)|escape:'html'}" title="{l s='Pay again' mod='pg24pay' d='Modules.Pg24pay.Rurl'}">{l s='Pay again' mod='pg24pay' d='Modules.Pg24pay.Rurl'}</a>
         {/if}
     {else}
