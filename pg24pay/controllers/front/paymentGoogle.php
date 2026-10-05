@@ -26,7 +26,11 @@ class Pg24payPaymentGoogleModuleFrontController extends ModuleFrontController
         
         if (isset($_GET['from_order'])){
 			
-            $orderId = $_GET['from_order'];
+            $orderId = (int) Tools::getValue('from_order');
+            if (!Pg24payOrderFromOrder::isOrderOwnedBy($orderId, $this->context->customer)) {
+                header('HTTP/1.1 403 Forbidden');
+                exit;
+            }
             $order = $this->paymentFromOrder($orderId);
         }
         else{

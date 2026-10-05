@@ -36,9 +36,20 @@ class Pg24payOrderFromOrder {
 
     private $signGenerator;
 
+    public static function isOrderOwnedBy($orderId, $customer)
+    {
+        if (!$customer || !Validate::isLoadedObject($customer) || (int) $orderId <= 0) {
+            return false;
+        }
+
+        $order = new Order((int) $orderId);
+
+        return Validate::isLoadedObject($order) && (int) $order->id_customer === (int) $customer->id;
+    }
+
     function __construct($orderId, $link){
 
-        $objOrder = new Order($orderId);
+        $objOrder = new Order((int) $orderId);
 
         $customer = new Customer($objOrder->id_customer);
         $address = new Address($objOrder->id_address_invoice);

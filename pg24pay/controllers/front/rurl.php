@@ -29,7 +29,11 @@ class Pg24payRurlModuleFrontController extends ModuleFrontController
 
             if ($orderId) {
                 $order = new Order($orderId);
-                $orderRef = $order->reference;
+                if (Validate::isLoadedObject($order) && (int) $order->id_customer === (int) $this->context->customer->id && $this->context->customer->id) {
+                    $orderRef = $order->reference;
+                } else {
+                    $orderId = null;
+                }
             }
         }
         
