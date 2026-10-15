@@ -1,9 +1,9 @@
 <div class="row-fluid">
     <div class="col-md-12">
-        <div class="alert alert-info">
+        <div class="alert alert-info clearfix" style="display:flow-root;">
 
-            <div style="height:59px;background-color:#FFF;display:inline-block;vertical-align: middle;border-radius: 4px;padding-left: 5px;padding-right: 5px;float:left;margin-right: 15px;">
-                <img src="https://www.24-pay.sk/wp-content/themes/24pay/images/logo.gif" style="margin-top: 8px;"/>
+            <div style="float:left;margin-right:15px;background:#FFF;border-radius:4px;padding:6px 10px;height:52px;overflow:hidden;">
+                <img src="https://www.24-pay.sk/wp-content/themes/24pay/images/logo.gif" alt="24-pay" style="height:40px !important;width:auto !important;max-width:none !important;display:block;"/>
             </div>
 
             <p><strong>{l s='This module allows you to accept payments with 24-pay payment gateway' mod='pg24pay' d='Modules.Pg24pay.Backoffice'}</strong></p>

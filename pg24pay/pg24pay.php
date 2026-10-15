@@ -17,7 +17,7 @@ class Pg24pay extends PaymentModule
     {
         $this->name = 'pg24pay';
         $this->tab = 'payments_gateways';
-        $this->version = '1.1.3';
+        $this->version = '1.1.4';
         $this->ps_versions_compliancy = array('min' => '9.0.0', 'max' => _PS_VERSION_);
         $this->author = '24pay';
         $this->currencies = true;
@@ -162,8 +162,10 @@ class Pg24pay extends PaymentModule
             Configuration::updateValue('PAY24_LOG', Tools::getValue('PAY24_LOG'));
         }
 
-        $url  = 'index.php?controller=AdminModules&configure=pg24pay';
-        $url .= '&token='.Tools::getAdminTokenLite('AdminModules');
+        $url = $this->context->link->getAdminLink('AdminModules', true, array(
+            'route' => 'admin_module_configure_action',
+            'module_name' => $this->name,
+        ));
 
         $this->context->smarty->assign(array(
             'PAY24_DEBUG' => Configuration::get('PAY24_DEBUG'),
@@ -189,15 +191,19 @@ class Pg24pay extends PaymentModule
     }
 
     private function runTest(){
-        include_once _PS_MODULE_DIR_.$this->name.'/core/pg24pay_request.php';
+        include_once __DIR__.'/core/pg24pay_request.php';
+        try {
             $requester = new Pg24payRequest();
             $signResult = $requester->checkSignGeneration();
             $gatesResult = $requester->checkAvailableGateways();
-            $this->context->smarty->assign(array(
-                'PAY24_TEST'=>'1',
-                'PAY24_SIGN_RESULT'=>$signResult,
-                'PAY24_GATES_RESULT'=>$gatesResult,
-            ));
+        } catch (\Throwable $e) {
+            $signResult = $gatesResult = 'ERROR: ' . $e->getMessage();
+        }
+        $this->context->smarty->assign(array(
+            'PAY24_TEST'=>'1',
+            'PAY24_SIGN_RESULT'=>$signResult,
+            'PAY24_GATES_RESULT'=>$gatesResult,
+        ));
     }
 
     public function fetchTemplate($name)

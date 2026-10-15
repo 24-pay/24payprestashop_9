@@ -1,5 +1,5 @@
 <?php
-include_once _PS_MODULE_DIR_.$this->name.'/core/pg24pay_sign.php';
+include_once __DIR__.'/pg24pay_sign.php';
 /*
  * To change this license header, choose License Headers in Project Properties.
  * To change this template file, choose Tools | Templates
@@ -50,23 +50,48 @@ class Pg24payRequest {
     }
     
     public function makePostRequest($url, $data) {
-        $options = array(
-                'http' => array(
-                        'header'  => "Content-type: application/x-www-form-urlencoded\r\n",
-                        'method'  => 'POST',
-                        'content' => http_build_query($data)
-                )
-        );
         // staging gateway does not have verified certificate
-        if ($this->signGenerator->debug==1) {
-                $options['ssl'] = array(
-                        'verify_peer' => false,
-                        'verify_peer_name' => false,
-                        'allow_self_signed' => true
-                );
+        $verify = $this->signGenerator->debug != 1;
+
+        if (function_exists('curl_init')) {
+            $ch = curl_init($url);
+            curl_setopt_array($ch, array(
+                CURLOPT_POST => true,
+                CURLOPT_POSTFIELDS => http_build_query($data),
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_TIMEOUT => 15,
+                CURLOPT_SSL_VERIFYPEER => $verify,
+                CURLOPT_SSL_VERIFYHOST => $verify ? 2 : 0,
+            ));
+            $result = curl_exec($ch);
+            $error = curl_error($ch);
+            curl_close($ch);
+            if ($result === false) {
+                throw new Exception($error ?: 'Request failed');
+            }
+            return $result;
         }
-        $context  = stream_context_create($options);
-        $result = file_get_contents($url, false, $context);
+
+        $options = array(
+            'http' => array(
+                'header'  => "Content-type: application/x-www-form-urlencoded\r\n",
+                'method'  => 'POST',
+                'content' => http_build_query($data),
+                'timeout' => 15,
+                'ignore_errors' => true,
+            ),
+        );
+        if (!$verify) {
+            $options['ssl'] = array(
+                'verify_peer' => false,
+                'verify_peer_name' => false,
+                'allow_self_signed' => true,
+            );
+        }
+        $result = @file_get_contents($url, false, stream_context_create($options));
+        if ($result === false) {
+            throw new Exception('Request to ' . $url . ' failed');
+        }
         return $result;
     }
 }

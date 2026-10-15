@@ -80,6 +80,7 @@ class Pg24payInstall{
             }
             $OK_state->module_name = "pg24pay";
             $OK_state->send_email = true;
+            $OK_state->template = array_fill_keys(array_column(Language::getLanguages(), 'id_lang'), 'payment');
             $OK_state->color = '#00CE52';
             $OK_state->hidden = false;
             $OK_state->delivery = false;
@@ -95,6 +96,8 @@ class Pg24payInstall{
         else {
             $OK_state = new OrderState(Configuration::get('PAY24_OK'));
             $OK_state->deleted = false;
+            $OK_state->send_email = true;
+            $OK_state->template = array_fill_keys(array_column(Language::getLanguages(), 'id_lang'), 'payment');
             $OK_state->update();
         }
 
@@ -113,7 +116,8 @@ class Pg24payInstall{
                 }
             }
             $FAIL_state->module_name = "pg24pay";
-            $FAIL_state->send_email = false;
+            $FAIL_state->send_email = true;
+            $FAIL_state->template = array_fill_keys(array_column(Language::getLanguages(), 'id_lang'), 'payment_error');
             $FAIL_state->color = '#FF0000';
             $FAIL_state->hidden = false;
             $FAIL_state->delivery = false;
@@ -129,6 +133,8 @@ class Pg24payInstall{
         else {
             $FAIL_state = new OrderState(Configuration::get('PAY24_FAIL'));
             $FAIL_state->deleted = false;
+            $FAIL_state->send_email = true;
+            $FAIL_state->template = array_fill_keys(array_column(Language::getLanguages(), 'id_lang'), 'payment_error');
             $FAIL_state->update();
         }
 
